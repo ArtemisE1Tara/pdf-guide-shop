@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import Link from "next/link"
 import { UserButton, SignInButton, useUser } from "@clerk/nextjs"
@@ -6,10 +6,22 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ShoppingCart } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
+import { useEffect, useState } from "react"
+
+// The only email allowed to be an admin
+const ADMIN_EMAIL = "ahmedsecen@gmail.com"
 
 export function SiteHeader() {
-  const { isSignedIn } = useUser()
+  const { isSignedIn, user } = useUser()
   const { items } = useCart()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      const userEmail = user.primaryEmailAddress?.emailAddress
+      setIsAdmin(userEmail === ADMIN_EMAIL)
+    }
+  }, [user])
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -25,6 +37,14 @@ export function SiteHeader() {
             >
               Shop
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="flex items-center text-lg font-medium transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                Admin
+              </Link>
+            )}
           </nav>
         </div>
         <div className="flex items-center gap-4">

@@ -16,11 +16,25 @@ export default function AdminSetupPage() {
   const [loading, setLoading] = useState(false)
   const [adminEmail, setAdminEmail] = useState("")
 
+  // Update the handleSetupAdmin function to check for the specific email
+
   const handleSetupAdmin = async () => {
     if (!user) {
       toast({
         title: "Not signed in",
         description: "You need to be signed in to set up an admin account",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const userEmail = user.primaryEmailAddress?.emailAddress || ""
+
+    // Check if the email matches the allowed admin email
+    if (userEmail !== "ahmedsecen@gmail.com") {
+      toast({
+        title: "Unauthorized",
+        description: "Only the site owner can be set as an admin",
         variant: "destructive",
       })
       return
@@ -45,7 +59,7 @@ export default function AdminSetupPage() {
       // Add to admin_users table
       const { error } = await supabase.from("admin_users").insert({
         clerk_id: user.id,
-        email: adminEmail || user.primaryEmailAddress?.emailAddress || "",
+        email: userEmail,
       })
 
       if (error) throw error
