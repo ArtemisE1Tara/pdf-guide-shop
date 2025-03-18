@@ -33,7 +33,7 @@ export default async function EditProductPage({ params }: { params: { id: string
           <section className="w-full py-12">
             <div className="container px-4 md:px-6">
               <div className="flex flex-col space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter">Edit Product</h1>
+                <h1 className="text-3xl font-bold tracking-tighter">Edit Products</h1>
                 <ProductForm product={product} />
               </div>
             </div>
