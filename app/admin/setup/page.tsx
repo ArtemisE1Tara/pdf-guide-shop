@@ -10,13 +10,15 @@ import { useState } from "react"
 import { useUser } from "@clerk/nextjs"
 import { createClientSupabaseClient } from "@/lib/supabase"
 
+// The admin email - make it case insensitive
+const ADMIN_EMAIL = "ahmedsecen2@gmail.com".toLowerCase()
+
 export default function AdminSetupPage() {
   const { user, isLoaded } = useUser()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [adminEmail, setAdminEmail] = useState("")
-
-  // Update the handleSetupAdmin function to check for the specific email
+  const [debugInfo, setDebugInfo] = useState<any>(null)
 
   const handleSetupAdmin = async () => {
     if (!user) {
@@ -28,13 +30,22 @@ export default function AdminSetupPage() {
       return
     }
 
-    const userEmail = user.primaryEmailAddress?.emailAddress || ""
+    const userEmail = (user.primaryEmailAddress?.emailAddress || "").toLowerCase().trim()
+
+    // Collect debug info
+    const debug = {
+      userEmail,
+      adminEmail: ADMIN_EMAIL,
+      isMatch: userEmail === ADMIN_EMAIL,
+      userId: user.id,
+    }
+    setDebugInfo(debug)
 
     // Check if the email matches the allowed admin email
-    if (userEmail !== "ahmedsecen@gmail.com") {
+    if (userEmail !== ADMIN_EMAIL) {
       toast({
         title: "Unauthorized",
-        description: "Only the site owner can be set as an admin",
+        description: `Only the site owner (${ADMIN_EMAIL}) can be set as an admin. Your email: ${userEmail}`,
         variant: "destructive",
       })
       return
@@ -46,7 +57,16 @@ export default function AdminSetupPage() {
       const supabase = createClientSupabaseClient()
 
       // Check if admin already exists
-      const { data: existingAdmin } = await supabase.from("admin_users").select("*").eq("clerk_id", user.id).single()
+      const { data: existingAdmin, error: checkError } = await supabase
+        .from("admin_users")
+        .select("*")
+        .eq("clerk_id", user.id)
+        .single()
+
+      if (checkError && checkError.code !== "PGRST116") {
+        // PGRST116 is the error code for "no rows returned" which is expected
+        throw checkError
+      }
 
       if (existingAdmin) {
         toast({
@@ -72,7 +92,7 @@ export default function AdminSetupPage() {
       console.error("Error setting up admin:", error)
       toast({
         title: "Error",
-        description: "Failed to set up admin account",
+        description: "Failed to set up admin account. See console for details.",
         variant: "destructive",
       })
     } finally {
@@ -111,6 +131,8 @@ export default function AdminSetupPage() {
     )
   }
 
+  const userEmail = user.primaryEmailAddress?.emailAddress || ""
+
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -129,14 +151,13 @@ export default function AdminSetupPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="admin-email">Admin Email</Label>
-                  <Input
-                    id="admin-email"
-                    value={adminEmail || user.primaryEmailAddress?.emailAddress || ""}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="admin@example.com"
-                  />
-                  <p className="text-sm text-gray-500">This should match the email you're using with Clerk</p>
+                  <Label htmlFor="admin-email">Your Email</Label>
+                  <Input id="admin-email" value={userEmail} readOnly className="bg-muted" />
+                  <p className="text-sm text-gray-500">
+                    {userEmail.toLowerCase() === ADMIN_EMAIL
+                      ? "✅ Your email matches the admin email"
+                      : "❌ Your email does not match the admin email"}
+                  </p>
                 </div>
 
                 <div className="rounded-md bg-amber-50 p-4 dark:bg-amber-950">
@@ -172,11 +193,28 @@ export default function AdminSetupPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium">Email:</span>
-                    <span className="text-gray-500">{user.primaryEmailAddress?.emailAddress}</span>
+                    <span className="text-gray-500">{userEmail}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Admin Email:</span>
+                    <span className="text-gray-500">{ADMIN_EMAIL}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {debugInfo && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Debug Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="bg-muted p-4 rounded-md overflow-auto text-xs">
+                    {JSON.stringify(debugInfo, null, 2)}
+                  </pre>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </main>

@@ -3,8 +3,8 @@ import { headers } from "next/headers"
 import type { WebhookEvent } from "@clerk/nextjs/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
-// The only email allowed to be an admin
-const ADMIN_EMAIL = "ahmedsecen@gmail.com"
+// The only email allowed to be an admin - make it case insensitive
+const ADMIN_EMAIL = "ahmedsecen2@gmail.com".toLowerCase()
 
 export async function POST(req: Request) {
   // Get the headers
@@ -49,8 +49,8 @@ export async function POST(req: Request) {
   if (eventType === "user.created" || eventType === "user.updated") {
     const { id, email_addresses } = evt.data
 
-    // Check if this is the admin user by comparing with the hardcoded email
-    const isAdmin = email_addresses.some((email) => email.email_address === ADMIN_EMAIL)
+    // Check if this is the admin user by comparing with the hardcoded email (case insensitive)
+    const isAdmin = email_addresses.some((email) => email.email_address.toLowerCase().trim() === ADMIN_EMAIL)
 
     if (isAdmin) {
       try {

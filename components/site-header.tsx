@@ -8,8 +8,8 @@ import { ShoppingCart } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
 import { useEffect, useState } from "react"
 
-// The only email allowed to be an admin
-const ADMIN_EMAIL = "ahmedsecen@gmail.com"
+// The only email allowed to be an admin - make it case insensitive
+const ADMIN_EMAIL = "ahmedsecen2@gmail.com".toLowerCase()
 
 export function SiteHeader() {
   const { isSignedIn, user } = useUser()
@@ -18,7 +18,7 @@ export function SiteHeader() {
 
   useEffect(() => {
     if (user) {
-      const userEmail = user.primaryEmailAddress?.emailAddress
+      const userEmail = (user.primaryEmailAddress?.emailAddress || "").toLowerCase().trim()
       setIsAdmin(userEmail === ADMIN_EMAIL)
     }
   }, [user])
