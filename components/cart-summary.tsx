@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { useCart } from "@/hooks/use-cart"
 import { formatPrice } from "@/lib/utils"
 import { useEffect, useState } from "react"
+import { ArrowRight, CreditCard, ShieldCheck } from "lucide-react"
 
 export function CartSummary() {
   const { items } = useCart()
@@ -17,7 +18,21 @@ export function CartSummary() {
   }, [])
 
   if (!mounted) {
-    return null
+    return (
+      <Card>
+        <CardHeader className="animate-pulse">
+          <div className="h-6 bg-muted rounded"></div>
+        </CardHeader>
+        <CardContent className="space-y-4 animate-pulse">
+          <div className="h-4 bg-muted rounded"></div>
+          <div className="h-4 bg-muted rounded"></div>
+          <div className="h-4 bg-muted rounded"></div>
+        </CardContent>
+        <CardFooter className="animate-pulse">
+          <div className="h-10 bg-muted rounded w-full"></div>
+        </CardFooter>
+      </Card>
+    )
   }
 
   const subtotal = items.reduce((total, item) => {
@@ -29,17 +44,17 @@ export function CartSummary() {
   const total = subtotal + tax
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-2">
+      <CardHeader className="bg-muted/50">
         <CardTitle>Order Summary</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         <div className="flex justify-between">
-          <span>Subtotal</span>
+          <span className="text-muted-foreground">Subtotal</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Tax (estimated)</span>
+          <span className="text-muted-foreground">Tax (estimated)</span>
           <span>{formatPrice(tax)}</span>
         </div>
         <Separator />
@@ -47,11 +62,25 @@ export function CartSummary() {
           <span>Total</span>
           <span>{formatPrice(total)}</span>
         </div>
+        <div className="rounded-lg bg-muted/50 p-4 text-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <span className="font-medium">Secure Checkout</span>
+          </div>
+          <p className="text-muted-foreground">
+            Your payment information is processed securely. We do not store credit card details.
+          </p>
+        </div>
       </CardContent>
-      <CardFooter>
-        <Button className="w-full" size="lg" disabled={items.length === 0}>
-          Proceed to Checkout
+      <CardFooter className="flex-col gap-2">
+        <Button className="w-full group" size="lg" disabled={items.length === 0}>
+          Checkout
+          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Button>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <CreditCard className="h-3 w-3" />
+          <span>Visa, Mastercard, American Express</span>
+        </div>
       </CardFooter>
     </Card>
   )
